@@ -1,0 +1,509 @@
+<b-modal 
+	id="create-edit"
+	centered
+  no-close-on-backdrop
+  no-close-on-esc
+>
+	<template v-slot:modal-header="{ close }">
+    <h5 v-if="editModal">Actualizar domiciliario</h5>
+    <h5 v-else>Nuevo domiciliario</h5>
+   	<button
+        class="btn btn__close waves"
+        @click="close()"
+    >
+      <i class="fas fa-times"></i>
+    </button>
+  </template>
+  <div class="container">
+  	<div class="row">
+  		<form @submit.prevent="saveDomiciliario">
+		    <div class="row">
+		        <div class="col-lg-12 text-center mb-2">
+		            <label
+		                class="profile__photo__edit"
+		                @click="$refs.fileInput.click()"
+		                v-if="!photo"
+		            >
+		                <i class="fas fa-camera icono__camera"></i>
+		            </label>
+		            <div class="photo__preview" v-else>
+		                    <img :src="photo">
+		                    <button
+		                        class="btn__delete--photo"
+		                        @click="RemovePhoto"
+		                    >
+		                        <i class="fas fa-times"></i>
+		                    </button>
+		            </div>
+		            <input
+		                type="file"
+		                class="d-none"
+		                id="file"
+		                ref="fileInput"
+		                name="file0"
+		                @change="fileChange"
+		                accept=".jpg, .png, .jpeg"
+		            >
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo"
+		        	>
+		            <label 
+		            	class="name__pse"
+		            	name="type_identification"
+		            >
+		          		Tipo de identificación
+		          	</label>
+		          	<div class="formulario__grupo--input">
+			            <select 
+			            	class="select__pse"
+			            	v-model="$v.domiciliario.type_identification.$model"
+			            	@blur="$v.domiciliario.type_identification.$touch()"
+			            >
+			                <option value="">
+			                    Seleccione
+			                </option>
+			                <option value="Cédula de ciudadanía">
+			                    Cédula de ciudadanía
+			                </option>
+			                <option value="Cédula de extrangería">
+			                    Cédula de extrangería
+			                </option>
+			                <option value="Pasaporte">
+			                    Pasaporte
+			                </option>
+			                <option value="Tarjeta de identidad">
+			                    Tarjeta de identidad
+			                </option>
+			            </select>
+		          	</div>
+		            <small 
+		            	class="formulario__input--error2" 
+		            	v-if="!submitted && $v.domiciliario.type_identification.$error"
+		            >
+	                Debe seleccionar una opción.
+	              </small>
+	             </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_identification"
+		        		:class="identificationErrors($v.domiciliario.identification)" 
+		        	>
+			        	<label class="name__pse">Identificación</label>
+			        	<div class="formulario__grupo--input">
+			        	  <input 
+			            	type="number" 
+			            	class="formulario__input"
+			            	name="identification"
+			            	v-model="$v.domiciliario.identification.$model"
+			            	@blur="$v.domiciliario.identification.$touch()"
+			            >
+								  <i class="formulario__validacion--estado  fas fa-times-circle"></i>
+			        	</div>
+			        	<small 
+			        		class="formulario__input--error" 
+			        		v-if="!submitted && !$v.domiciliario.identification.required"
+			        	>
+	                Debe llenar este campo
+	              </small>
+	            </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_names"
+		        		:class="namesErrors($v.domiciliario.names)"
+		        	>
+		            <label class="name__pse">Nombres</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="text" 
+			            	class="formulario__input"
+			            	name="names"
+			            	v-model="$v.domiciliario.names.$model"
+			            	@blur="$v.domiciliario.names.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+			          </div>
+		            <small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.names.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.names.alpha"
+		            >
+                  Los nombres no deben tener números ni caracteres especiales.
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_surnames"
+		        		:class="surnamesErrors($v.domiciliario.surnames)" 
+		        	>
+		            <label class="name__pse">Apellidos</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="text"
+			            	class="formulario__input"
+			            	name="surnames" 
+			            	v-model="$v.domiciliario.surnames.$model"
+			            	@blur="$v.domiciliario.surnames.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+			          </div>
+		            <small 
+		            	class="formulario__input--error"  
+		            	v-if="!submitted && !$v.domiciliario.surnames.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.surnames.alpha"
+		            >
+                  Los apellidos no deben tener números ni carácteres especiales.
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_phone"
+		        		:class="phoneErrors($v.domiciliario.phone)"  
+		        	>
+		            <label class="name__pse">Teléfono</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="number" 
+			            	class="formulario__input"
+			            	name="phone"
+			            	v-model="$v.domiciliario.phone.$model"
+			            	@blur="$v.domiciliario.phone.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		          	<small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.phone.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.phone.minLength"
+		            >
+                  El teléfono debe tener mínimo {{$v.domiciliario.phone.$params.minLength.min}} dígitos.
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.phone.maxLength"
+		            >
+                  El teléfono debe tener máximo {{$v.domiciliario.phone.$params.maxLength.max}} dígitos.
+                </small>
+		          </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_cell_phone"
+		        		:class="cell_phoneErrors($v.domiciliario.cell_phone)" 
+		        	>
+		            <label class="name__pse">Celular</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="number" 
+			            	class="formulario__input"
+			            	name="cell_phone"
+			            	v-model="$v.domiciliario.cell_phone.$model"
+			            	@blur="$v.domiciliario.cell_phone.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		            <small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.cell_phone.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.cell_phone.minLength"
+		            >
+                  El celular debe tener mínimo {{$v.domiciliario.cell_phone.$params.minLength.min}} dígitos.
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.cell_phone.maxLength"
+		            >
+                  El celular debe tener máximo {{$v.domiciliario.cell_phone.$params.maxLength.max}} dígitos.
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_email"
+		        		:class="emailErrors($v.domiciliario.email)" 
+		        	>
+		            <label class="name__pse">Correo electrónico</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="email" 
+			            	class="formulario__input"
+			            	name="email"
+			            	v-model="$v.domiciliario.email.$model"
+			            	@blur="$v.domiciliario.email.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		            <small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.email.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.email.email"
+		            >
+                  Correo electrónico invalido.
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_password"
+		        		:class="passwordErrors($v.domiciliario.password)"
+		        	>
+		            <label class="name__pse">Contraseña</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="password" 
+			            	class="formulario__input"
+			            	name="password"
+			            	v-model="$v.domiciliario.password.$model"
+			            	@blur="$v.domiciliario.password.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		            <small
+		            	class="formulario__input--error"  
+		            	v-if="!submitted && !$v.domiciliario.password.required"
+		            >
+                  Debe llenar este campo
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.password.minLength"
+		            >
+                  Utiliza 8 caracteres como mínimo con una combinación de letras mayúsculas, minúsculas, números y carácteres especiales.
+                </small>
+                <!-- <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.password.hasNumber"
+		            >
+                  La contreseña debe tener mínimo un numero.
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.password.hasLowercaseLetter"
+		            >
+                  La contreseña debe tener mínimo una letra minúscula.
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.password.hasCapitalcaseLetter"
+		            >
+                  La contreseña debe tener mínimo una letra mayúscula.
+                </small>
+                <small 
+		            	class="formulario__input--error" 
+		            	v-if="!$v.domiciliario.password.hasCapitalcaseLetter"
+		            >
+                  La contreseña debe tener mínimo un carácter especial.
+                </small> -->
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_repeat_password"
+		        		:class="repeatPasswordErrors($v.domiciliario.password_confirmation,$v.domiciliario.password)"
+		        	>
+		            <label class="name__pse">Confirmar contraseña</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="password" 
+			            	class="formulario__input"
+			            	name="password_confirmation"
+			            	v-model="$v.domiciliario.password_confirmation.$model"
+			            	@blur="$v.domiciliario.password_confirmation.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		          	<small
+		            	class="formulario__input--error"  
+		            	v-if="!submitted && !$v.domiciliario.password_confirmation.$error"
+		            >
+                  Primero debe digitar la contraseña.
+                </small>
+		            <small
+		            	class="formulario__input--error"  
+		            	v-if="!$v.domiciliario.repeatPassword.sameAsPassword"
+		            >
+                  Las contraseñas no coinciden.
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_neighborhood"
+		        		:class="neighborhoodErrors($v.domiciliario.neighborhood)" 
+		        	>
+		            <label class="name__pse">Barrio</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="text" 
+			            	class="formulario__input"
+			            	name="neighborhood"
+			            	v-model="$v.domiciliario.neighborhood.$model"
+			            	@blur="$v.domiciliario.neighborhood.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		            <small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.neighborhood.required"
+		            >
+                  Debe llenar este campo
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		        	<div 
+		        		class="formulario__grupo" 
+		        		id="grupo_andress"
+		        		:class="andressErrors($v.domiciliario.andress)" 
+		        	>
+		            <label class="name__pse">Dirección</label>
+		            <div class="formulario__grupo--input">
+			            <input 
+			            	type="text" 
+			            	class="formulario__input"
+			            	name="andress"
+			            	v-model="$v.domiciliario.andress.$model"
+			            	@blur="$v.domiciliario.andress.$touch()"
+			            >
+			            <i class="formulario__validacion--estado fas fa-times-circle"></i>
+		          	</div>
+		            <small 
+		            	class="formulario__input--error" 
+		            	v-if="!submitted && !$v.domiciliario.andress.required"
+		            >
+                  Debe llenar este campo
+                </small>
+              </div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-2">
+		            <label class="name__pse mb-2">Género</label>
+		            <b-form-radio-group class="pl-2">
+		              <b-form-radio 
+		              	class="radio__genero" 
+		              	name="some-radios" 
+		              	value="Masculino"
+		              	v-model="$v.domiciliario.gender.$model"
+		              >
+		            		Masculino
+		            	</b-form-radio>
+		              <b-form-radio 
+		              	class="radio__genero" 
+		              	name="some-radios" 
+		              	value="Femenino"
+		              	v-model="$v.domiciliario.gender.$model"
+		              >
+		            		Femenino
+		            	</b-form-radio>
+		            </b-form-radio-group>
+		            <small 
+		            	class="formulario__input--error2" 
+		            	v-if="!submitted && $v.domiciliario.gender.$error"
+		            >
+                  Debe seleccionar un género
+                </small>
+		        </div>
+		        <!-- <div class="col-lg-6 col-md-6 col-12 mb-3">
+		        	<button 
+		        		type="button" 
+		        		class="btn btn-success btn-sm"
+		        		@click="NewTalla"
+		        	>
+		        		Agregar Talla
+		        	</button>
+		        	<div 
+		        		class="formulario__grupo--dinamico mt-3"
+		        		v-for="(caracteristica1, counter) in caracteristicas1"
+		        		:key="counter"
+		        	>
+		        		<input 
+		        			type="text" 
+		        			class="input__dinamico" 
+		        			placeholder="Talla M"
+		        			v-model="caracteristicas1.talla"
+		        		>
+		        		<button 
+		        			type="button" 
+		        			class="btn btn-danger btn-sm"
+		        			@click="DeleteTalla(counter)"
+		        		>
+		        			<i class="fas fa-trash-alt"></i>
+		        		</button>
+		        	</div>
+		        </div>
+		        <div class="col-lg-6 col-md-6 col-12 mb-3">
+		        	<button type="button" class="btn btn-success btn-sm">Agregar Color</button>
+		        		<div class="formulario__grupo--dinamico mt-3">
+			        		<input 
+			        			type="text" 
+			        			class="input__dinamico" 
+			        			placeholder="Color Rojo"
+			        			v-model="caracteristicas2.color"
+			        		>
+			        		<button type="button" class="btn btn-danger btn-sm">
+			        			<i class="fas fa-trash-alt"></i>
+			        		</button>
+		        	</div>
+		        </div> -->
+		    </div>
+		    <div class="row text-center mb-2 mt-1">
+		        <div class="col-lg-12">
+		        	<input
+	                type="submit"
+	                class="btn btn-warning block waves"
+	                value="Actualizar"
+	                v-if="editModal"
+	            >
+	            <input
+	                type="submit"
+	                class="btn btn-info block waves"
+	                value="Crear"
+	                v-else
+	            >
+		        </div>
+		    </div>
+		  </form>
+  	</div>
+  </div>
+</b-modal>
+
+v-for="(item, counter) in featureProduct"
+                :key="counter"
